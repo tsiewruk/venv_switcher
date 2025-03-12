@@ -2,10 +2,84 @@ import os
 import sys
 import platform
 import shutil
+import json
+
+def get_config_path():
+    """Returns the path to the configuration file based on the operating system."""
+    if platform.system().lower() == "windows":
+        return os.path.join(os.path.expanduser("~"), "AppData", "Local", "venv_switcher", "config.cfg")
+    return os.path.join(os.path.expanduser("~"), ".venv_switcher.cfg")
+
+def load_config():
+    """Loads configuration from file. Returns default if no config exists."""
+    config_path = get_config_path()
+    default_config = {
+        "venv_base": os.path.join(os.path.expanduser("~"), "venvs")
+    }
+    
+    if not os.path.exists(config_path):
+        return default_config
+    
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error reading config file: {str(e)}")
+        return default_config
+
+def save_config(config):
+    """Saves configuration to file."""
+    config_path = get_config_path()
+    config_dir = os.path.dirname(config_path)
+    
+    try:
+        # Create config directory if it doesn't exist
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+            
+        with open(config_path, 'w') as f:
+            json.dump(config, f, indent=4)
+        print(f"\nConfiguration saved to: {config_path}")
+        return True
+    except Exception as e:
+        print(f"Error saving config file: {str(e)}")
+        return False
+
+def configure_venv_location():
+    """Configures the virtual environments directory location."""
+    current_config = load_config()
+    current_location = current_config.get("venv_base", "Not configured")
+    
+    print(f"\nCurrent virtual environments location: {current_location}")
+    new_location = input("\nEnter new location for virtual environments (or press Enter to keep current): ").strip()
+    
+    if not new_location:
+        print("Keeping current location.")
+        return
+    
+    # Expand user path if necessary
+    new_location = os.path.expanduser(new_location)
+    
+    # Create directory if it doesn't exist
+    try:
+        if not os.path.exists(new_location):
+            create_dir = input(f"Directory {new_location} does not exist. Create it? (yes/no): ")
+            if create_dir.lower() == 'yes':
+                os.makedirs(new_location)
+            else:
+                print("Configuration cancelled.")
+                return
+        
+        current_config["venv_base"] = new_location
+        if save_config(current_config):
+            print(f"Virtual environments location updated to: {new_location}")
+    except Exception as e:
+        print(f"Error configuring location: {str(e)}")
 
 def get_venv_base():
     """Returns the path to the virtual environments directory."""
-    return os.path.join(os.path.expanduser("/home/tomasz/Documents/"), "venvs")
+    config = load_config()
+    return config["venv_base"]
 
 def list_venvs():
     """Displays a list of available virtual environments."""
@@ -90,12 +164,14 @@ def activate_venv(venv_name):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python script.py [list|switch|remove]")
+        print("Usage: python script.py [list|switch|remove|--configure]")
         sys.exit(1)
 
     command = sys.argv[1].lower()
 
-    if command == "list":
+    if command == "--configure":
+        configure_venv_location()
+    elif command == "list":
         list_venvs()
     elif command == "switch":
         venvs = list_venvs()
@@ -103,7 +179,11 @@ def main():
             sys.exit(1)
         
         try:
-            choice = input("\nSelect environment number to activate: ")
+            choice = input("\nSelect environment number to activate (or 'x' to cancel): ").strip().lower()
+            if choice == 'x':
+                print("Operation cancelled.")
+                sys.exit(0)
+            
             venv_index = int(choice) - 1
             if 0 <= venv_index < len(venvs):
                 activate_venv(venvs[venv_index])
@@ -111,7 +191,7 @@ def main():
                 print("Invalid environment number.")
                 sys.exit(1)
         except ValueError:
-            print("Please enter a valid number.")
+            print("Please enter a valid number or 'x' to cancel.")
             sys.exit(1)
     elif command == "remove":
         venvs = list_venvs()
@@ -119,7 +199,11 @@ def main():
             sys.exit(1)
         
         try:
-            choice = input("\nSelect environment number to remove: ")
+            choice = input("\nSelect environment number to remove (or 'x' to cancel): ").strip().lower()
+            if choice == 'x':
+                print("Operation cancelled.")
+                sys.exit(0)
+            
             venv_index = int(choice) - 1
             if 0 <= venv_index < len(venvs):
                 remove_venv(venvs[venv_index])
@@ -127,10 +211,10 @@ def main():
                 print("Invalid environment number.")
                 sys.exit(1)
         except ValueError:
-            print("Please enter a valid number.")
+            print("Please enter a valid number or 'x' to cancel.")
             sys.exit(1)
     else:
-        print("Unknown command. Use 'list', 'switch' or 'remove'")
+        print("Unknown command. Use 'list', 'switch', 'remove' or '--configure'")
         sys.exit(1)
 
 if __name__ == "__main__":
