@@ -1,10 +1,11 @@
 # Venv Switcher
 
-A command-line tool for managing Python virtual environments. This tool helps you list, switch between, and remove virtual environments from a centralized location.
+A command-line tool for managing Python virtual environments. This tool helps you list, create, switch between, and remove virtual environments from a centralized location.
 
 ## Features
 
 - List all available virtual environments
+- Create new virtual environments
 - Switch between virtual environments
 - Remove virtual environments
 - Configure virtual environments directory location
@@ -13,7 +14,7 @@ A command-line tool for managing Python virtual environments. This tool helps yo
 
 ## Installation
 
-1. Download the `venv.py` script
+1. Download the `venv_switcher.py` script
 2. Place it in a directory of your choice
 3. (Optional) Add the directory to your PATH for easier access
 
@@ -22,7 +23,7 @@ A command-line tool for managing Python virtual environments. This tool helps yo
 By default, virtual environments are stored in `~/venvs`. You can change this location using the configuration command:
 
 ```bash
-python venv.py --configure
+python venv_switcher.py --configure
 ```
 
 Configuration files are stored in:
@@ -36,15 +37,28 @@ Configuration files are stored in:
 To see all available virtual environments:
 
 ```bash
-python venv.py list
+python venv_switcher.py list
 ```
+
+### Create New Environment
+
+To create a new virtual environment:
+
+```bash
+python venv_switcher.py create
+```
+
+This will:
+1. Prompt you for the name of the new environment
+2. Create the environment with pip support
+3. Show the command to activate the new environment
 
 ### Switch Environment
 
 To activate a different virtual environment:
 
 ```bash
-python venv.py switch
+python venv_switcher.py switch
 ```
 
 This will:
@@ -57,7 +71,7 @@ This will:
 To remove a virtual environment:
 
 ```bash
-python venv.py remove
+python venv_switcher.py remove
 ```
 
 This will:
@@ -70,7 +84,7 @@ This will:
 To change where virtual environments are stored:
 
 ```bash
-python venv.py --configure
+python venv_switcher.py --configure
 ```
 
 This will:
@@ -83,6 +97,7 @@ This will:
 | Command | Description |
 |---------|-------------|
 | `list` | Display all available virtual environments |
+| `create` | Create a new virtual environment |
 | `switch` | Switch to a different virtual environment |
 | `remove` | Remove a virtual environment |
 | `--configure` | Configure the virtual environments directory |
@@ -96,6 +111,8 @@ The tool includes comprehensive error handling for:
 - Permission problems
 - Invalid commands
 - Cancelled operations
+- Duplicate environment names
+- Failed environment creation
 
 ## System Requirements
 
@@ -108,6 +125,7 @@ The tool includes comprehensive error handling for:
 - All operations are confirmed before execution to prevent accidental deletions.
 - The configuration is stored in JSON format for easy editing if needed.
 - You can cancel any selection prompt by entering 'x'
+- New environments are created with pip support by default
 
 ## Contributing
 
