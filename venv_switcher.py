@@ -3,6 +3,8 @@ import sys
 import platform
 import shutil
 import json
+import venv
+import argparse
 
 def get_config_path():
     """Returns the path to the configuration file based on the operating system."""
@@ -162,59 +164,106 @@ def activate_venv(venv_name):
     print(f"\nTo activate environment '{venv_name}', execute the following command:")
     print(f"\n{command}\n")
 
+def create_venv(venv_name):
+    """Creates a new virtual environment with the given name."""
+    venv_base = get_venv_base()
+    venv_path = os.path.join(venv_base, venv_name)
+    
+    # Check if environment already exists
+    if os.path.exists(venv_path):
+        print(f"Error: Environment '{venv_name}' already exists in {venv_base}")
+        return False
+    
+    try:
+        # Create base directory if it doesn't exist
+        if not os.path.exists(venv_base):
+            os.makedirs(venv_base)
+        
+        # Create virtual environment using EnvBuilder
+        print(f"\nCreating virtual environment '{venv_name}'...")
+        builder = venv.EnvBuilder(with_pip=True)
+        builder.create(venv_path)
+        print(f"\nVirtual environment created successfully at: {venv_path}")
+        
+        # Ask if the user wants to activate the environment
+        activate_choice = input("\nDo you want to activate the environment now? (yes/no): ").strip().lower()
+        if activate_choice == 'yes':
+            activate_venv(venv_name)
+        return True
+    except Exception as e:
+        print(f"Error creating virtual environment: {str(e)}")
+        return False
+
+def parse_arguments():
+    """Parses command-line arguments."""
+    parser = argparse.ArgumentParser(description='Virtual Environment Switcher')
+    parser.add_argument('command', choices=['list', 'create', 'switch', 'remove', '--configure'],
+                        help='Command to execute')
+    return parser.parse_args()
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py [list|switch|remove|--configure]")
+    args = parse_arguments()
+    command = args.command
+
+    if command == '--configure':
+        configure_venv_location()
+    elif command == 'list':
+        list_venvs()
+    elif command == 'create':
+        venv_name = input("\nEnter name for new virtual environment (or 'x' to cancel): ").strip()
+        if venv_name.lower() == 'x':
+            print("Operation cancelled.")
+            sys.exit(0)
+        if not venv_name:
+            print("Error: Environment name cannot be empty.")
+            sys.exit(1)
+        create_venv(venv_name)
+    elif command == 'switch':
+        venvs = list_venvs()
+        if not venvs:
+            sys.exit(1)
+        switch_venv(venvs)
+    elif command == 'remove':
+        venvs = list_venvs()
+        if not venvs:
+            sys.exit(1)
+        remove_venv_interactive(venvs)
+    else:
+        print("Unknown command. Use 'list', 'create', 'switch', 'remove' or '--configure'")
         sys.exit(1)
 
-    command = sys.argv[1].lower()
+def switch_venv(venvs):
+    """Handles the logic for switching virtual environments."""
+    try:
+        choice = input("\nSelect environment number to activate (or 'x' to cancel): ").strip().lower()
+        if choice == 'x':
+            print("Operation cancelled.")
+            sys.exit(0)
+        venv_index = int(choice) - 1
+        if 0 <= venv_index < len(venvs):
+            activate_venv(venvs[venv_index])
+        else:
+            print("Invalid environment number.")
+            sys.exit(1)
+    except ValueError:
+        print("Please enter a valid number or 'x' to cancel.")
+        sys.exit(1)
 
-    if command == "--configure":
-        configure_venv_location()
-    elif command == "list":
-        list_venvs()
-    elif command == "switch":
-        venvs = list_venvs()
-        if not venvs:
+def remove_venv_interactive(venvs):
+    """Handles the logic for interactively removing virtual environments."""
+    try:
+        choice = input("\nSelect environment number to remove (or 'x' to cancel): ").strip().lower()
+        if choice == 'x':
+            print("Operation cancelled.")
+            sys.exit(0)
+        venv_index = int(choice) - 1
+        if 0 <= venv_index < len(venvs):
+            remove_venv(venvs[venv_index])
+        else:
+            print("Invalid environment number.")
             sys.exit(1)
-        
-        try:
-            choice = input("\nSelect environment number to activate (or 'x' to cancel): ").strip().lower()
-            if choice == 'x':
-                print("Operation cancelled.")
-                sys.exit(0)
-            
-            venv_index = int(choice) - 1
-            if 0 <= venv_index < len(venvs):
-                activate_venv(venvs[venv_index])
-            else:
-                print("Invalid environment number.")
-                sys.exit(1)
-        except ValueError:
-            print("Please enter a valid number or 'x' to cancel.")
-            sys.exit(1)
-    elif command == "remove":
-        venvs = list_venvs()
-        if not venvs:
-            sys.exit(1)
-        
-        try:
-            choice = input("\nSelect environment number to remove (or 'x' to cancel): ").strip().lower()
-            if choice == 'x':
-                print("Operation cancelled.")
-                sys.exit(0)
-            
-            venv_index = int(choice) - 1
-            if 0 <= venv_index < len(venvs):
-                remove_venv(venvs[venv_index])
-            else:
-                print("Invalid environment number.")
-                sys.exit(1)
-        except ValueError:
-            print("Please enter a valid number or 'x' to cancel.")
-            sys.exit(1)
-    else:
-        print("Unknown command. Use 'list', 'switch', 'remove' or '--configure'")
+    except ValueError:
+        print("Please enter a valid number or 'x' to cancel.")
         sys.exit(1)
 
 if __name__ == "__main__":
