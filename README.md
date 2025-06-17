@@ -16,7 +16,12 @@ A command-line tool for managing Python virtual environments. This tool helps yo
 
 1. Download the `venv_switcher.py` script
 2. Place it in a directory of your choice
-3. (Optional) Add the directory to your PATH for easier access
+3. Make it executable: `chmod +x venv_switcher.py`
+4. (Optional) Add the directory to your PATH for easier access
+
+You can then run the script either as:
+- `./venv_switcher.py command` (direct execution)
+- `python3 venv_switcher.py command` (through Python interpreter)
 
 ## Configuration
 
@@ -37,7 +42,9 @@ Configuration files are stored in:
 To see all available virtual environments:
 
 ```bash
-python venv_switcher.py list
+./venv_switcher.py list
+# or
+python3 venv_switcher.py list
 ```
 
 ### Create New Environment
@@ -45,33 +52,35 @@ python venv_switcher.py list
 To create a new virtual environment:
 
 ```bash
-python venv_switcher.py create
+./venv_switcher.py create
 ```
 
 This will:
 1. Prompt you for the name of the new environment
 2. Create the environment with pip support
-3. Show the command to activate the new environment
+3. Ask if you want to activate it immediately
+4. If you choose "yes", automatically activate the new environment in a new shell
 
 ### Switch Environment
 
 To activate a different virtual environment:
 
 ```bash
-python venv_switcher.py switch
+./venv_switcher.py switch
 ```
 
 This will:
 1. Show a list of available environments
 2. Prompt you to select an environment by number (or 'x' to cancel)
-3. Provide the command to activate the selected environment
+3. Automatically activate the selected environment in a new shell
+4. To deactivate, simply type `exit` or press Ctrl+D to return to the previous shell
 
 ### Remove Environment
 
 To remove a virtual environment:
 
 ```bash
-python venv_switcher.py remove
+./venv_switcher.py remove
 ```
 
 This will:
@@ -84,7 +93,7 @@ This will:
 To change where virtual environments are stored:
 
 ```bash
-python venv_switcher.py --configure
+./venv_switcher.py --configure
 ```
 
 This will:
@@ -121,7 +130,8 @@ The tool includes comprehensive error handling for:
 
 ## Notes
 
-- The tool cannot directly activate environments due to shell limitations. Instead, it provides the necessary command to activate the environment.
+- The tool automatically activates environments by starting a new shell with the virtual environment already active.
+- To deactivate an environment, simply type `exit` or press Ctrl+D to return to the previous shell.
 - All operations are confirmed before execution to prevent accidental deletions.
 - The configuration is stored in JSON format for easy editing if needed.
 - You can cancel any selection prompt by entering 'x'

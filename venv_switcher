@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import sys
 import platform
@@ -128,7 +130,7 @@ def remove_venv(venv_name):
         print(f"Error while removing environment: {str(e)}")
         return False
 
-def activate_venv(venv_name):
+def activate_venv(venv_name, auto_activate=False):
     """Activates the selected virtual environment."""
     
     # Check operating system
@@ -147,22 +149,60 @@ def activate_venv(venv_name):
     # Path to activation script
     if is_windows:
         activate_script = os.path.join(venv_path, "Scripts", "activate.bat")
+        if auto_activate:
+            print(f"\nTo activate environment '{venv_name}', execute the following command:")
+            print(f"\ncall {activate_script}\n")
+        else:
+            print(f"\nTo activate environment '{venv_name}', execute the following command:")
+            print(f"\ncall {activate_script}\n")
     else:
         activate_script = os.path.join(venv_path, "bin", "activate")
-    
-    if not os.path.exists(activate_script):
-        print(f"Error: Activation script not found at {activate_script}")
-        sys.exit(1)
-    
-    # Generate command to execute
-    if is_windows:
-        command = f"call {activate_script}"
-    else:
-        command = f"source {activate_script}"
-    
-    # Display instructions for user
-    print(f"\nTo activate environment '{venv_name}', execute the following command:")
-    print(f"\n{command}\n")
+        if not os.path.exists(activate_script):
+            print(f"Error: Activation script not found at {activate_script}")
+            sys.exit(1)
+        
+        if auto_activate:
+            # Automatically activate by starting a new shell with the venv
+            print(f"\nActivating virtual environment '{venv_name}'...")
+            
+            # Get current shell
+            current_shell = os.environ.get('SHELL', '/bin/bash')
+            
+            # Set environment variables for the venv
+            venv_python = os.path.join(venv_path, "bin", "python")
+            venv_pip = os.path.join(venv_path, "bin", "pip")
+            
+            # Create new environment with venv activated
+            new_env = os.environ.copy()
+            new_env['VIRTUAL_ENV'] = venv_path
+            new_env['PATH'] = f"{os.path.join(venv_path, 'bin')}:{new_env['PATH']}"
+            
+            # Remove PYTHONHOME if it exists (can interfere with venv)
+            if 'PYTHONHOME' in new_env:
+                del new_env['PYTHONHOME']
+            
+            # Update PS1 to show venv name
+            if 'PS1' in new_env:
+                new_env['PS1'] = f"({venv_name}) {new_env['PS1']}"
+            else:
+                new_env['PS1'] = f"({venv_name}) $ "
+            
+            print(f"Virtual environment '{venv_name}' activated!")
+            print(f"Python path: {venv_python}")
+            print(f"To deactivate, type 'exit' or press Ctrl+D")
+            print()
+            
+            # Start new shell with activated environment
+            try:
+                os.execve(current_shell, [current_shell], new_env)
+            except Exception as e:
+                print(f"Error starting shell: {e}")
+                print(f"Fallback: source {activate_script}")
+        else:
+            print(f"\nTo activate environment '{venv_name}', execute the following command:")
+            print(f"\nsource {activate_script}\n")
+            print("Note: You can also use the alias command if you create one:")
+            print(f"alias activate_{venv_name}='source {activate_script}'")
 
 def create_venv(venv_name):
     """Creates a new virtual environment with the given name."""
@@ -188,7 +228,7 @@ def create_venv(venv_name):
         # Ask if the user wants to activate the environment
         activate_choice = input("\nDo you want to activate the environment now? (yes/no): ").strip().lower()
         if activate_choice == 'yes':
-            activate_venv(venv_name)
+            activate_venv(venv_name, auto_activate=True)
         return True
     except Exception as e:
         print(f"Error creating virtual environment: {str(e)}")
@@ -228,12 +268,13 @@ def main():
         if not venvs:
             sys.exit(1)
         remove_venv_interactive(venvs)
+
     else:
         print("Unknown command. Use 'list', 'create', 'switch', 'remove' or '--configure'")
         sys.exit(1)
 
 def switch_venv(venvs):
-    """Handles the logic for switching virtual environments."""
+    """Handles the logic for switching virtual environments with automatic activation."""
     try:
         choice = input("\nSelect environment number to activate (or 'x' to cancel): ").strip().lower()
         if choice == 'x':
@@ -241,7 +282,7 @@ def switch_venv(venvs):
             sys.exit(0)
         venv_index = int(choice) - 1
         if 0 <= venv_index < len(venvs):
-            activate_venv(venvs[venv_index])
+            activate_venv(venvs[venv_index], auto_activate=True)
         else:
             print("Invalid environment number.")
             sys.exit(1)
