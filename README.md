@@ -14,21 +14,21 @@ A command-line tool for managing Python virtual environments. This tool helps yo
 
 ## Installation
 
-1. Download the `venv_switcher.py` script
+1. Download the `venv_switcher` script
 2. Place it in a directory of your choice
-3. Make it executable: `chmod +x venv_switcher.py`
+3. Make it executable: `chmod +x venv_switcher`
 4. (Optional) Add the directory to your PATH for easier access
 
 You can then run the script either as:
-- `./venv_switcher.py command` (direct execution)
-- `python3 venv_switcher.py command` (through Python interpreter)
+- `./venv_switcher command` (direct execution)
+- `python3 venv_switcher command` (through Python interpreter)
 
 ## Configuration
 
 By default, virtual environments are stored in `~/venvs`. You can change this location using the configuration command:
 
 ```bash
-python venv_switcher.py --configure
+python venv_switcher --configure
 ```
 
 Configuration files are stored in:
@@ -42,9 +42,9 @@ Configuration files are stored in:
 To see all available virtual environments:
 
 ```bash
-./venv_switcher.py list
+./venv_switcher list
 # or
-python3 venv_switcher.py list
+python3 venv_switcher list
 ```
 
 ### Create New Environment
@@ -52,7 +52,7 @@ python3 venv_switcher.py list
 To create a new virtual environment:
 
 ```bash
-./venv_switcher.py create
+./venv_switcher create
 ```
 
 This will:
@@ -66,7 +66,7 @@ This will:
 To activate a different virtual environment:
 
 ```bash
-./venv_switcher.py switch
+./venv_switcher switch
 ```
 
 This will:
@@ -80,7 +80,7 @@ This will:
 To remove a virtual environment:
 
 ```bash
-./venv_switcher.py remove
+./venv_switcher remove
 ```
 
 This will:
@@ -93,7 +93,7 @@ This will:
 To change where virtual environments are stored:
 
 ```bash
-./venv_switcher.py --configure
+./venv_switcher --configure
 ```
 
 This will:
